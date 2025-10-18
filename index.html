@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>မြန်မာစာ AI Chatbot - Working Version</title>
+    <title>မြန်မာစာ AI Chatbot - Multi City Weather</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -100,9 +100,31 @@
             font-size: 0.8em;
             cursor: pointer;
         }
+        .city-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+        }
+        .city-btn {
+            background: #00b894;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            cursor: pointer;
+        }
         .api-result {
             background: #e3f2fd;
             border-left: 4px solid #0084ff;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+        }
+        .weather-result {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
             padding: 10px;
             margin: 8px 0;
             border-radius: 8px;
@@ -131,64 +153,141 @@
     <div class="chat-container">
         <div class="header">
             <h1>🤖 မြန်မာစာ AI အကူ</h1>
-            <p>အဆင်ပြေစွာအသုံးပြုနိုင်ပါပြီ</p>
+            <p>မြို့အလိုက်ရာသီဥတု</p>
         </div>
         
         <div class="messages" id="messages">
             <div class="message bot-message">
                 <div class="bubble">
                     <strong>မင်္ဂလာပါ! 👋</strong><br>
-                    ကျွန်တော်က မြန်မာစာပါ AI အကူပါ။
+                    ကျွန်တော်က မြန်မာစာပါ AI အကူပါ။ မြို့အလိုက်ရာသီဥတုတွေ ကူညီပေးနိုင်ပါတယ်။
                     
                     <div class="quick-buttons">
-                        <button class="quick-btn" onclick="askQuestion('ရန်ကုန် ရာသီဥတု')">🌤️ ရာသီဥတု</button>
+                        <button class="quick-btn" onclick="askQuestion('ရာသီဥတု')">🌤️ ရာသီဥတုများ</button>
                         <button class="quick-btn" onclick="askQuestion('ငွေလဲနှုန်း')">💱 ငွေလဲနှုန်း</button>
                         <button class="quick-btn" onclick="askQuestion('၁၅×၃ တွက်ပေးပါ')">🧮 တွက်ချက်မှု</button>
-                        <button class="quick-btn" onclick="askQuestion('ဟာသတစ်ခုပြောပါ')">😄 ဟာသများ</button>
+                    </div>
+
+                    <div style="margin-top: 10px;">
+                        <strong>မြို့ရွေးရန်:</strong>
+                        <div class="city-buttons">
+                            <button class="city-btn" onclick="askQuestion('ရန်ကုန် ရာသီဥတု')">ရန်ကုန်</button>
+                            <button class="city-btn" onclick="askQuestion('မန္တလေး ရာသီဥတု')">မန္တလေး</button>
+                            <button class="city-btn" onclick="askQuestion('နေပြည်တော် ရာသီဥတု')">နေပြည်တော်</button>
+                            <button class="city-btn" onclick="askQuestion('ပဲခူး ရာသီဥတု')">ပဲခူး</button>
+                            <button class="city-btn" onclick="askQuestion('မော်လမြိုင် ရာသီဥတု')">မော်လမြိုင်</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="စာရိုက်ရန်..." autocomplete="off">
+            <input type="text" id="userInput" placeholder="မြို့အမည်ရိုက်ထည့်ပါ..." autocomplete="off">
             <button id="sendBtn">➤</button>
         </div>
     </div>
 
     <script>
-        // Simple AI Assistant with Real APIs
+        // Myanmar Cities Mapping
+        const myanmarCities = {
+            'ရန်ကုန်': 'Yangon',
+            'မန္တလေး': 'Mandalay', 
+            'နေပြည်တော်': 'Naypyidaw',
+            'ပဲခူး': 'Bago',
+            'မော်လမြိုင်': 'Mawlamyine',
+            'စစ်တွေ': 'Sittwe',
+            'တောင်ကြီး': 'Taunggyi',
+            'ပြင်ဦးလွင်': 'Pyin Oo Lwin',
+            'မကွေး': 'Magway',
+            'မြစ်ကြီးနား': 'Myitkyina'
+        };
+
+        // Simple AI Assistant with Multi-City Weather
         class AIAssistant {
-            async getRealWeather() {
+            extractCity(input) {
+                for (const [mmCity, engCity] of Object.entries(myanmarCities)) {
+                    if (input.includes(mmCity)) {
+                        return { mmCity, engCity };
+                    }
+                }
+                return { mmCity: 'ရန်ကုန်', engCity: 'Yangon' }; // default
+            }
+
+            async getRealWeather(input) {
+                const { mmCity, engCity } = this.extractCity(input);
+                
                 try {
-                    const response = await fetch('https://api.openweathermap.org/data/2.5/weather?q=Yangon&appid=b1b15e88fa797225412429c1c50c122a1&units=metric');
+                    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${engCity}&appid=b1b15e88fa797225412429c1c50c122a1&units=metric`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Weather API failed');
+                    }
+                    
                     const data = await response.json();
-                    return `<strong>🌤️ ရန်ကုန်ရာသီဥတု (Real API)</strong>
-        <div class="api-result">
+                    
+                    // Weather translations
+                    const weatherTranslations = {
+                        'clear sky': '☀️ ကောင်းကင်ပြင့်',
+                        'few clouds': '⛅ တိမ်အနည်းငယ်',
+                        'scattered clouds': '☁️ တိမ်များပြားနေ',
+                        'broken clouds': '☁️ တိမ်ထူထပ်နေ',
+                        'overcast clouds': '☁️ တိမ်ဖုံးနေ',
+                        'light rain': '🌦️ မိုးအနည်းငယ်',
+                        'moderate rain': '🌧️ မိုးအသင့်အတင့်',
+                        'heavy intensity rain': '⛈️ မိုးသည်းထန်စွာ',
+                        'thunderstorm': '⛈️ မိုးကြိုးပစ်နေ'
+                    };
+
+                    const mmDesc = weatherTranslations[data.weather[0].description] || data.weather[0].description;
+
+                    return `<strong>🌤️ ${mmCity} မြို့ ရာသီဥတု</strong>
+        <div class="weather-result">
         အပူချိန်: <strong>${Math.round(data.main.temp)}°C</strong><br>
-        ရာသီဥတု: ${data.weather[0].description}<br>
+        ခံစားရအပူချိန်: <strong>${Math.round(data.main.feels_like)}°C</strong><br>
+        ရာသီဥတု: ${mmDesc}<br>
         စိုထိုင်းဆ: ${data.main.humidity}%<br>
+        လေတိုက်နှုန်း: ${data.wind.speed} m/s<br>
         <small>OpenWeatherMap မှ လက်ရှိဒေတာ</small>
         </div>`;
+
                 } catch (error) {
-                    return `<strong>🌤️ ရန်ကုန်ရာသီဥတု</strong>
-        <div class="api-result">
-        အပူချိန်: <strong>32°C</strong><br>
-        ရာသီဥတု: တိမ်အနည်းငယ်<br>
+                    return this.getFallbackWeather(mmCity);
+                }
+            }
+
+            getFallbackWeather(city) {
+                const weatherData = {
+                    'ရန်ကုန်': { temp: 32, desc: '⛅ တိမ်အနည်းငယ်', humidity: 75 },
+                    'မန္တလေး': { temp: 35, desc: '☀️ နေရောင်ခြည်', humidity: 60 },
+                    'နေပြည်တော်': { temp: 33, desc: '☁️ တိမ်ထူ', humidity: 70 },
+                    'ပဲခူး': { temp: 31, desc: '🌦️ မိုးအနည်းငယ်', humidity: 80 },
+                    'မော်လမြိုင်': { temp: 30, desc: '🌧️ မိုးရွာ', humidity: 85 },
+                    'စစ်တွေ': { temp: 29, desc: '🌦️ မိုးအနည်းငယ်', humidity: 82 },
+                    'တောင်ကြီး': { temp: 25, desc: '⛅ တိမ်အနည်းငယ်', humidity: 78 }
+                };
+
+                const data = weatherData[city] || { temp: 32, desc: '⛅ တိမ်အနည်းငယ်', humidity: 75 };
+
+                return `<strong>🌤️ ${city} မြို့ ရာသီဥတု</strong>
+        <div class="weather-result">
+        အပူချိန်: <strong>${data.temp}°C</strong><br>
+        ရာသီဥတု: ${data.desc}<br>
+        စိုထိုင်းဆ: ${data.humidity}%<br>
         <small>ခန့်မှန်းခြေဒေတာ</small>
         </div>`;
-                }
             }
 
             async getRealExchange() {
                 try {
                     const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
                     const data = await response.json();
-                    return `<strong>💱 ငွေလဲနှုန်းများ (Real API)</strong>
+                    return `<strong>💱 ငွေလဲနှုန်းများ</strong>
         <div class="api-result">
         USD to MMK: <strong>${data.rates.MMK} ကျပ်</strong><br>
         USD to EUR: ${data.rates.EUR}<br>
         USD to SGD: ${data.rates.SGD}<br>
+        USD to THB: ${data.rates.THB}<br>
         <small>ExchangeRate-API မှ လက်ရှိဒေတာ</small>
         </div>`;
                 } catch (error) {
@@ -197,33 +296,14 @@
         USD to MMK: <strong>2,100 ကျပ်</strong><br>
         USD to EUR: 0.92<br>
         USD to SGD: 1.35<br>
+        USD to THB: 35.50<br>
         <small>ခန့်မှန်းခြေနှုန်းထား</small>
-        </div>`;
-                }
-            }
-
-            async getRealJoke() {
-                try {
-                    const response = await fetch('https://official-joke-api.appspot.com/random_joke');
-                    const data = await response.json();
-                    return `<strong>😄 ဟာသ (Real API)</strong>
-        <div class="api-result">
-        ${data.setup}<br><br>
-        <strong>${data.punchline}</strong><br>
-        <small>Official Joke API မှ</small>
-        </div>`;
-                } catch (error) {
-                    return `<strong>😄 ဟာသ</strong>
-        <div class="api-result">
-        ဘာကြောင့် ကွန်ပျူတာတွေက ဘာသာစကားအသစ်တွေ သင်ရတာ ကြောက်တာလဲ?<br><br>
-        <strong>ဘာလို့လဲဆိုတော့... သူတို့မှာ ဘာဂါ(bug)တွေ ရှိနေလို့ပါ!</strong>
         </div>`;
                 }
             }
 
             calculate(input) {
                 try {
-                    // Extract numbers and operators
                     const expression = input.replace(/[^0-9+\-*/().]/g, '');
                     if (expression) {
                         const result = eval(expression);
@@ -239,22 +319,43 @@
                 }
             }
 
+            showWeatherHelp() {
+                let citiesHTML = '';
+                for (const city of Object.keys(myanmarCities)) {
+                    citiesHTML += `<button class="city-btn" onclick="askQuestion('${city} ရာသီဥတု')">${city}</button>`;
+                }
+
+                return `<strong>🌤️ မြို့အလိုက်ရာသီဥတုများ</strong>
+        <div class="api-result">
+        <strong>မြို့ရွေးရန်:</strong>
+        <div class="city-buttons">
+            ${citiesHTML}
+        </div>
+        <br>
+        <strong>ဒါမှမဟုတ် စာရိုက်ပါ:</strong><br>
+        • "ရန်ကုန် ရာသီဥတု"<br>
+        • "မန္တလေး ရာသီဥတု"<br>
+        • "နေပြည်တော် ရာသီဥတု"<br>
+        <small>Real API ဖြင့် ချိတ်ဆက်ထားပါသည်</small>
+        </div>`;
+            }
+
             async process(input) {
                 if (input.includes('ရာသီဥတု')) {
-                    return await this.getRealWeather();
+                    if (input === 'ရာသီဥတု') {
+                        return this.showWeatherHelp();
+                    }
+                    return await this.getRealWeather(input);
                 } else if (input.includes('ငွေလဲ')) {
                     return await this.getRealExchange();
-                } else if (input.includes('ဟာသ')) {
-                    return await this.getRealJoke();
                 } else if (input.includes('တွက်') || input.includes('+') || input.includes('-') || input.includes('*') || input.includes('/')) {
                     return this.calculate(input);
                 } else {
                     return `<strong>🤖 ကျေးဇူးပြု၍ ဒီလိုမေးပါ:</strong>
         <div class="api-result">
-        • "ရန်ကုန် ရာသီဥတု"<br>
-        • "ငွေလဲနှုန်း"<br>
-        • "၁၅×၃ တွက်ပေးပါ"<br>
-        • "ဟာသတစ်ခုပြောပါ"<br>
+        • "ရာသီဥတု" - မြို့အလိုက်ရာသီဥတုများ<br>
+        • "ငွေလဲနှုန်း" - လက်ရှိငွေလဲနှုန်းများ<br>
+        • "၁၅×၃ တွက်ပေးပါ" - တွက်ချက်မှုလုပ်ဆောင်ချက်<br>
         <small>Real APIs များဖြင့် ချိတ်ဆက်ထားပါသည်</small>
         </div>`;
                 }
@@ -276,14 +377,10 @@
             const message = userInput.value.trim();
             if (!message) return;
 
-            // Add user message
             addMessage(message, 'user');
             userInput.value = '';
-
-            // Show typing indicator
             showTyping();
 
-            // Get AI response
             try {
                 const response = await ai.process(message);
                 hideTyping();
@@ -304,8 +401,6 @@
             
             messageDiv.appendChild(bubble);
             messages.appendChild(messageDiv);
-            
-            // Scroll to bottom
             messages.scrollTop = messages.scrollHeight;
         }
 
@@ -330,13 +425,12 @@
             }
         }
 
-        // Event listeners
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
 
-        console.log('🚀 Myanmar AI Chatbot loaded successfully!');
+        console.log('🚀 Myanmar AI Chatbot with Multi-City Weather loaded!');
     </script>
 </body>
 </html>
