@@ -510,5 +510,168 @@
         <small>Real API ဖြင့် ချိတ်ဆက်ထားပါသည်</small>
         </div>`;
             }
+                 showNewsHelp() {
+                let categoriesHTML = '';
+                for (const category of Object.keys(newsCategories)) {
+                    categoriesHTML += `<button class="news-btn" data-question="${category}သတင်း">${category}</button>`;
+                }
 
+                return `<strong>📰 သတင်းအမျိုးအစားများ</strong>
+        <div class="api-result">
+        <strong>သတင်းအမျိုးအစား ရွေးရန်:</strong>
+        <div class="news-buttons">
+            ${categoriesHTML}
+        </div>
+        <br>
+        <strong>ဒါမှမဟုတ် စာရိုက်ပါ:</strong><br>
+        • "နိုင်ငံတော်သတင်း"<br>
+        • "စီးပွားရေးသတင်း"<br>
+        • "အားကစားသတင်း"<br>
+        <small>နမူနာသတင်းများကို ပြသပေးပါမည်</small>
+        </div>`;
+            }
+
+            showHelp() {
+                return `<strong>🤖 ကျေးဇူးပြု၍ ဒီလိုမေးပါ:</strong>
+        <div class="api-result">
+        <strong>ရာသီဥတု:</strong><br>
+        • "ရာသီဥတု" - မြို့အလိုက်ရာသီဥတုများ<br>
+        • "ရန်ကုန် ရာသီဥတု" - တိကျသောမြို့<br><br>
+
+        <strong>သတင်း:</strong><br>
+        • "သတင်း" - သတင်းအမျိုးအစားများ<br>
+        • "စီးပွားရေးသတင်း" - ကဏ္ဍအလိုက်သတင်း<br><br>
+
+        <strong>အခြား:</strong><br>
+        • "ငွေလဲနှုန်း" - လက်ရှိငွေလဲနှုန်းများ<br>
+        • "၁၅×၃ တွက်ပေးပါ" - တွက်ချက်မှုလုပ်ဆောင်ချက်<br>
+        <small>Real APIs များဖြင့် ချိတ်ဆက်ထားပါသည်</small>
+        </div>`;
+            }
+
+            async process(input) {
+                if (input.includes('ရာသီဥတု')) {
+                    if (input === 'ရာသီဥတု') {
+                        return this.showWeatherHelp();
+                    }
+                    return await this.getRealWeather(input);
+                } else if (input.includes('သတင်း')) {
+                    if (input === 'သတင်း') {
+                        return this.showNewsHelp();
+                    }
+                    return await this.getMyanmarNews(input);
+                } else if (input.includes('ငွေလဲ')) {
+                    return await this.getRealExchange();
+                } else if (input.includes('တွက်') || input.includes('+') || input.includes('-') || input.includes('*') || input.includes('/')) {
+                    return this.calculate(input);
+                } else {
+                    return this.showHelp();
+                }
+            }
+        }
+
+        // Chat Application
+        const ai = new AIAssistant();
+        const messages = document.getElementById('messages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Fixed button click handler
+        function askQuestion(question) {
+            userInput.value = question;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+            showTyping();
+
+            try {
+                const response = await ai.process(message);
+                hideTyping();
+                addMessage(response, 'bot');
+            } catch (error) {
+                hideTyping();
+                addMessage("တောင်းပန်ပါတယ်၊ အမှားတစ်ခုဖြစ်သွားပါတယ်။", 'bot');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.innerHTML = text;
+            
+            messageDiv.appendChild(bubble);
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+            
+            // Re-attach event listeners to new buttons
+            attachButtonListeners();
+        }
+
+        function showTyping() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            messageDiv.id = 'typingIndicator';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble typing';
+            bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            
+            messageDiv.appendChild(bubble);
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Fixed button event listener attachment
+        function attachButtonListeners() {
+            // Remove existing event listeners first
+            document.querySelectorAll('.quick-btn, .city-btn, .news-btn').forEach(btn => {
+                btn.replaceWith(btn.cloneNode(true));
+            });
+
+            // Add new event listeners
+            document.querySelectorAll('.quick-btn, .city-btn, .news-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const question = this.getAttribute('data-question');
+                    if (question) {
+                        askQuestion(question);
+                    }
+                });
+            });
+        }
+
+        // Initialize event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Attach button listeners on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            attachButtonListeners();
+            userInput.focus();
+        });
+
+        // Auto-focus on input
+        userInput.focus();
+
+        console.log('🚀 Myanmar AI Assistant with Weather & News loaded!');
+    </script>
+</body>
+</html>
      
