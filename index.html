@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+her<!DOCTYPE html>
 <html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>မြန်မာစာ AI Chatbot - Multi City Weather</title>
+    <title>မြန်မာစာ AI Assistant - Multi City Weather & News</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: Arial, sans-serif;
+            font-family: 'Pyidaungsu', 'Myanmar3', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea, #764ba2);
             height: 100vh;
             display: flex;
@@ -75,6 +75,7 @@
             border-radius: 25px;
             outline: none;
             font-size: 1em;
+            font-family: 'Pyidaungsu', 'Myanmar3', Arial, sans-serif;
         }
         #sendBtn {
             background: #0084ff;
@@ -84,6 +85,7 @@
             height: 45px;
             border-radius: 50%;
             cursor: pointer;
+            font-size: 1.2em;
         }
         .quick-buttons {
             display: flex;
@@ -99,6 +101,7 @@
             border-radius: 15px;
             font-size: 0.8em;
             cursor: pointer;
+            font-family: 'Pyidaungsu', 'Myanmar3', Arial, sans-serif;
         }
         .city-buttons {
             display: flex;
@@ -114,6 +117,23 @@
             border-radius: 12px;
             font-size: 0.7em;
             cursor: pointer;
+            font-family: 'Pyidaungsu', 'Myanmar3', Arial, sans-serif;
+        }
+        .news-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+        }
+        .news-btn {
+            background: #e17055;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            cursor: pointer;
+            font-family: 'Pyidaungsu', 'Myanmar3', Arial, sans-serif;
         }
         .api-result {
             background: #e3f2fd;
@@ -125,6 +145,13 @@
         .weather-result {
             background: #fff3cd;
             border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+        }
+        .news-result {
+            background: #ffeaa7;
+            border-left: 4px solid #fdcb6e;
             padding: 10px;
             margin: 8px 0;
             border-radius: 8px;
@@ -147,23 +174,38 @@
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-5px); }
         }
+        .news-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .news-title {
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+        .news-date {
+            font-size: 0.8em;
+            color: #636e72;
+        }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="header">
             <h1>🤖 မြန်မာစာ AI အကူ</h1>
-            <p>မြို့အလိုက်ရာသီဥတု</p>
+            <p>ရာသီဥတု + သတင်း + တွက်ချက်မှု</p>
         </div>
         
         <div class="messages" id="messages">
             <div class="message bot-message">
                 <div class="bubble">
                     <strong>မင်္ဂလာပါ! 👋</strong><br>
-                    ကျွန်တော်က မြန်မာစာပါ AI အကူပါ။ မြို့အလိုက်ရာသီဥတုတွေ ကူညီပေးနိုင်ပါတယ်။
+                    ကျွန်တော်က မြန်မာစာပါ AI အကူပါ။ ရာသီဥတု၊ သတင်း၊ ငွေလဲနှုန်းနဲ့ တွက်ချက်မှုတွေ ကူညီပေးနိုင်ပါတယ်။
                     
                     <div class="quick-buttons">
-                        <button class="quick-btn" onclick="askQuestion('ရာသီဥတု')">🌤️ ရာသီဥတုများ</button>
+                        <button class="quick-btn" onclick="askQuestion('ရာသီဥတု')">🌤️ ရာသီဥတု</button>
+                        <button class="quick-btn" onclick="askQuestion('သတင်း')">📰 သတင်းများ</button>
                         <button class="quick-btn" onclick="askQuestion('ငွေလဲနှုန်း')">💱 ငွေလဲနှုန်း</button>
                         <button class="quick-btn" onclick="askQuestion('၁၅×၃ တွက်ပေးပါ')">🧮 တွက်ချက်မှု</button>
                     </div>
@@ -178,12 +220,22 @@
                             <button class="city-btn" onclick="askQuestion('မော်လမြိုင် ရာသီဥတု')">မော်လမြိုင်</button>
                         </div>
                     </div>
+
+                    <div style="margin-top: 10px;">
+                        <strong>သတင်းအမျိုးအစား:</strong>
+                        <div class="news-buttons">
+                            <button class="news-btn" onclick="askQuestion('နိုင်ငံတော်သတင်း')">နိုင်ငံတော်</button>
+                            <button class="news-btn" onclick="askQuestion('စီးပွားရေးသတင်း')">စီးပွားရေး</button>
+                            <button class="news-btn" onclick="askQuestion('ကျန်းမာရေးသတင်း')">ကျန်းမာရေး</button>
+                            <button class="news-btn" onclick="askQuestion('အားကစားသတင်း')">အားကစား</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="မြို့အမည်ရိုက်ထည့်ပါ..." autocomplete="off">
+            <input type="text" id="userInput" placeholder="စာရိုက်ထည့်ပါ (သို့) ခလုတ်နှိပ်ပါ..." autocomplete="off">
             <button id="sendBtn">➤</button>
         </div>
     </div>
@@ -203,7 +255,18 @@
             'မြစ်ကြီးနား': 'Myitkyina'
         };
 
-        // Simple AI Assistant with Multi-City Weather
+        // News Categories
+        const newsCategories = {
+            'နိုင်ငံတော်': 'politics',
+            'စီးပွားရေး': 'economy',
+            'ကျန်းမာရေး': 'health',
+            'အားကစား': 'sports',
+            'နည်းပညာ': 'technology',
+            'ပညာရေး': 'education',
+            'ခရီးသွား': 'travel'
+        };
+
+        // Enhanced AI Assistant with Weather, News & Calculations
         class AIAssistant {
             extractCity(input) {
                 for (const [mmCity, engCity] of Object.entries(myanmarCities)) {
@@ -212,6 +275,15 @@
                     }
                 }
                 return { mmCity: 'ရန်ကုန်', engCity: 'Yangon' }; // default
+            }
+
+            extractNewsCategory(input) {
+                for (const [mmCat, engCat] of Object.entries(newsCategories)) {
+                    if (input.includes(mmCat)) {
+                        return { mmCat, engCat };
+                    }
+                }
+                return { mmCat: 'အထွေထွေ', engCat: 'general' };
             }
 
             async getRealWeather(input) {
@@ -236,7 +308,10 @@
                         'light rain': '🌦️ မိုးအနည်းငယ်',
                         'moderate rain': '🌧️ မိုးအသင့်အတင့်',
                         'heavy intensity rain': '⛈️ မိုးသည်းထန်စွာ',
-                        'thunderstorm': '⛈️ မိုးကြိုးပစ်နေ'
+                        'thunderstorm': '⛈️ မိုးကြိုးပစ်နေ',
+                        'mist': '🌫️ မြူထူနေ',
+                        'fog': '🌫️ ဆိုင်းနေ',
+                        'haze': '🌫️ မြူဆိုင်းနေ'
                     };
 
                     const mmDesc = weatherTranslations[data.weather[0].description] || data.weather[0].description;
@@ -248,6 +323,7 @@
         ရာသီဥတု: ${mmDesc}<br>
         စိုထိုင်းဆ: ${data.main.humidity}%<br>
         လေတိုက်နှုန်း: ${data.wind.speed} m/s<br>
+        လေဖိအား: ${data.main.pressure} hPa<br>
         <small>OpenWeatherMap မှ လက်ရှိဒေတာ</small>
         </div>`;
 
@@ -258,22 +334,25 @@
 
             getFallbackWeather(city) {
                 const weatherData = {
-                    'ရန်ကုန်': { temp: 32, desc: '⛅ တိမ်အနည်းငယ်', humidity: 75 },
-                    'မန္တလေး': { temp: 35, desc: '☀️ နေရောင်ခြည်', humidity: 60 },
-                    'နေပြည်တော်': { temp: 33, desc: '☁️ တိမ်ထူ', humidity: 70 },
-                    'ပဲခူး': { temp: 31, desc: '🌦️ မိုးအနည်းငယ်', humidity: 80 },
-                    'မော်လမြိုင်': { temp: 30, desc: '🌧️ မိုးရွာ', humidity: 85 },
-                    'စစ်တွေ': { temp: 29, desc: '🌦️ မိုးအနည်းငယ်', humidity: 82 },
-                    'တောင်ကြီး': { temp: 25, desc: '⛅ တိမ်အနည်းငယ်', humidity: 78 }
+                    'ရန်ကုန်': { temp: 32, feels_like: 36, desc: '⛅ တိမ်အနည်းငယ်', humidity: 75, wind: 2.5, pressure: 1010 },
+                    'မန္တလေး': { temp: 35, feels_like: 38, desc: '☀️ နေရောင်ခြည်', humidity: 60, wind: 3.0, pressure: 1008 },
+                    'နေပြည်တော်': { temp: 33, feels_like: 35, desc: '☁️ တိမ်ထူ', humidity: 70, wind: 2.0, pressure: 1011 },
+                    'ပဲခူး': { temp: 31, feels_like: 34, desc: '🌦️ မိုးအနည်းငယ်', humidity: 80, wind: 1.5, pressure: 1012 },
+                    'မော်လမြိုင်': { temp: 30, feels_like: 33, desc: '🌧️ မိုးရွာ', humidity: 85, wind: 2.2, pressure: 1010 },
+                    'စစ်တွေ': { temp: 29, feels_like: 32, desc: '🌦️ မိုးအနည်းငယ်', humidity: 82, wind: 3.5, pressure: 1009 },
+                    'တောင်ကြီး': { temp: 25, feels_like: 27, desc: '⛅ တိမ်အနည်းငယ်', humidity: 78, wind: 1.8, pressure: 1013 }
                 };
 
-                const data = weatherData[city] || { temp: 32, desc: '⛅ တိမ်အနည်းငယ်', humidity: 75 };
+                const data = weatherData[city] || { temp: 32, feels_like: 36, desc: '⛅ တိမ်အနည်းငယ်', humidity: 75, wind: 2.5, pressure: 1010 };
 
                 return `<strong>🌤️ ${city} မြို့ ရာသီဥတု</strong>
         <div class="weather-result">
         အပူချိန်: <strong>${data.temp}°C</strong><br>
+        ခံစားရအပူချိန်: <strong>${data.feels_like}°C</strong><br>
         ရာသီဥတု: ${data.desc}<br>
         စိုထိုင်းဆ: ${data.humidity}%<br>
+        လေတိုက်နှုန်း: ${data.wind} m/s<br>
+        လေဖိအား: ${data.pressure} hPa<br>
         <small>ခန့်မှန်းခြေဒေတာ</small>
         </div>`;
             }
@@ -284,10 +363,11 @@
                     const data = await response.json();
                     return `<strong>💱 ငွေလဲနှုန်းများ</strong>
         <div class="api-result">
-        USD to MMK: <strong>${data.rates.MMK} ကျပ်</strong><br>
-        USD to EUR: ${data.rates.EUR}<br>
-        USD to SGD: ${data.rates.SGD}<br>
-        USD to THB: ${data.rates.THB}<br>
+        USD to MMK: <strong>${Math.round(data.rates.MMK).toLocaleString()} ကျပ်</strong><br>
+        USD to EUR: ${data.rates.EUR.toFixed(3)}<br>
+        USD to SGD: ${data.rates.SGD.toFixed(3)}<br>
+        USD to THB: ${data.rates.THB.toFixed(2)}<br>
+        USD to CNY: ${data.rates.CNY.toFixed(3)}<br>
         <small>ExchangeRate-API မှ လက်ရှိဒေတာ</small>
         </div>`;
                 } catch (error) {
@@ -297,13 +377,92 @@
         USD to EUR: 0.92<br>
         USD to SGD: 1.35<br>
         USD to THB: 35.50<br>
+        USD to CNY: 7.25<br>
         <small>ခန့်မှန်းခြေနှုန်းထား</small>
         </div>`;
                 }
             }
 
+            async getMyanmarNews(category = '') {
+                const { mmCat } = this.extractNewsCategory(category);
+                
+                try {
+                    // Try to fetch from RSS feeds or news API
+                    const newsData = await this.fetchNewsFromAPI(mmCat);
+                    return this.formatNews(newsData, mmCat);
+                } catch (error) {
+                    return this.getFallbackNews(mmCat);
+                }
+            }
+
+            async fetchNewsFromAPI(category) {
+                // This is a placeholder for actual news API integration
+                // You can integrate with NewsAPI, RSS feeds, or other news sources
+                
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Return sample news data
+                return this.getSampleNews(category);
+            }
+
+            getSampleNews(category) {
+                const sampleNews = {
+                    'နိုင်ငံတော်': [
+                        { title: 'မြန်မာနိုင်ငံတွင် နည်းပညာဖွံ့ဖြိုးရေး ဆွေးနွေးပွဲ', date: 'ဒီဇင်ဘာ ၁၅, ၂၀၂၄', source: 'MM Times' },
+                        { title: 'ပညာရေးစနစ် ခေတ်မီအောင် ပြောင်းလဲမှုများ', date: 'ဒီဇင်ဘာ ၁၄, ၂၀၂၄', source: 'Myanmar Now' }
+                    ],
+                    'စီးပွားရေး': [
+                        { title: 'စီးပွားရေးဖွံ့ဖြိုးတိုးတက်မှု ခန့်မှန်းချက်', date: 'ဒီဇင်ဘာ ၁၅, ၂၀၂၄', source: 'Economic Times' },
+                        { title: 'နိုင်ငံခြားရင်းနှီးမြှုပ်နှံမှု မြင့်တက်လာ', date: 'ဒီဇင်ဘာ ၁၄, ၂၀၂၄', source: 'Business MM' }
+                    ],
+                    'ကျန်းမာရေး': [
+                        { title: 'ဆေးရုံများတွင် ခေတ်မီကိရိယာများ တပ်ဆင်ရေး', date: 'ဒီဇင်ဘာ ၁၅, ၂၀၂၄', source: 'Health Journal' },
+                        { title: 'COVID-19 ကာကွယ်ဆေး ထိုးနှံမှု အစီအစဉ်', date: 'ဒီဇင်ဘာ ၁၄, ၂၀၂၄', source: 'MM Health' }
+                    ],
+                    'အားကစား': [
+                        { title: 'မြန်မာ့ဘောလုံးအသင်း နိုင်ငံတကာပြိုင်ပွဲ', date: 'ဒီဇင်ဘာ ၁၅, ၂၀၂၄', source: 'Sports MM' },
+                        { title: 'အားကစားသမားများ နိုင်ငံတကာဆုတံဆိပ်ရရှိ', date: 'ဒီဇင်ဘာ ၁၄, ၂၀၂၄', source: 'Champion News' }
+                    ]
+                };
+
+                return sampleNews[category] || sampleNews['နိုင်ငံတော်'];
+            }
+
+            formatNews(newsItems, category) {
+                let newsHTML = `<strong>📰 ${category} သတင်းများ</strong><div class="news-result">`;
+                
+                newsItems.forEach((news, index) => {
+                    newsHTML += `
+                        <div class="news-item">
+                            <div class="news-title">${index + 1}. ${news.title}</div>
+                            <div class="news-date">📅 ${news.date} | 📝 ${news.source}</div>
+                        </div>
+                    `;
+                });
+                
+                newsHTML += `<small>နမူနာသတင်းများ - အမှန်တကယ်သတင်းများအတွက် သတင်းမီဒီယာများသို့ ကြည့်ရှုပါ</small></div>`;
+                return newsHTML;
+            }
+
+            getFallbackNews(category) {
+                return `<strong>📰 ${category} သတင်းများ</strong>
+        <div class="news-result">
+            <div class="news-item">
+                <div class="news-title">၁. ${category} ဆိုင်ရာ နောက်ဆုံးရသတင်း</div>
+                <div class="news-date">📅 ဒီဇင်ဘာ ၁၅, ၂၀၂၄ | 📝 Sample News</div>
+            </div>
+            <div class="news-item">
+                <div class="news-title">၂. ${category} ကဏ္ဍ ဖွံ့ဖြိုးတိုးတက်မှု</div>
+                <div class="news-date">📅 ဒီဇင်ဘာ ၁၄, ၂၀၂၄ | 📝 Sample Source</div>
+            </div>
+            <small>အမှန်တကယ်သတင်းများအတွက် သတင်းမီဒီယာများသို့ ကြည့်ရှုပါ</small>
+        </div>`;
+            }
+
             calculate(input) {
                 try {
+                    // Extract numbers and operators
                     const expression = input.replace(/[^0-9+\-*/().]/g, '');
                     if (expression) {
                         const result = eval(expression);
@@ -340,97 +499,7 @@
         </div>`;
             }
 
-            async process(input) {
-                if (input.includes('ရာသီဥတု')) {
-                    if (input === 'ရာသီဥတု') {
-                        return this.showWeatherHelp();
-                    }
-                    return await this.getRealWeather(input);
-                } else if (input.includes('ငွေလဲ')) {
-                    return await this.getRealExchange();
-                } else if (input.includes('တွက်') || input.includes('+') || input.includes('-') || input.includes('*') || input.includes('/')) {
-                    return this.calculate(input);
-                } else {
-                    return `<strong>🤖 ကျေးဇူးပြု၍ ဒီလိုမေးပါ:</strong>
-        <div class="api-result">
-        • "ရာသီဥတု" - မြို့အလိုက်ရာသီဥတုများ<br>
-        • "ငွေလဲနှုန်း" - လက်ရှိငွေလဲနှုန်းများ<br>
-        • "၁၅×၃ တွက်ပေးပါ" - တွက်ချက်မှုလုပ်ဆောင်ချက်<br>
-        <small>Real APIs များဖြင့် ချိတ်ဆက်ထားပါသည်</small>
-        </div>`;
-                }
-            }
-        }
-
-        // Chat Application
-        const ai = new AIAssistant();
-        const messages = document.getElementById('messages');
-        const userInput = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-
-        function askQuestion(question) {
-            userInput.value = question;
-            sendMessage();
-        }
-
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
-
-            addMessage(message, 'user');
-            userInput.value = '';
-            showTyping();
-
-            try {
-                const response = await ai.process(message);
-                hideTyping();
-                addMessage(response, 'bot');
-            } catch (error) {
-                hideTyping();
-                addMessage("တောင်းပန်ပါတယ်၊ အမှားတစ်ခုဖြစ်သွားပါတယ်။", 'bot');
-            }
-        }
-
-        function addMessage(text, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
-            
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            bubble.innerHTML = text;
-            
-            messageDiv.appendChild(bubble);
-            messages.appendChild(messageDiv);
-            messages.scrollTop = messages.scrollHeight;
-        }
-
-        function showTyping() {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot-message';
-            messageDiv.id = 'typingIndicator';
-            
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble typing';
-            bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-            
-            messageDiv.appendChild(bubble);
-            messages.appendChild(messageDiv);
-            messages.scrollTop = messages.scrollHeight;
-        }
-
-        function hideTyping() {
-            const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator) {
-                typingIndicator.remove();
-            }
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        console.log('🚀 Myanmar AI Chatbot with Multi-City Weather loaded!');
-    </script>
-</body>
-</html>
+            showNewsHelp() {
+                let categoriesHTML = '';
+                for (const category of Object.keys(newsCategories)) {
+                    categoriesHTML += `<button class="news-btn" onclic
