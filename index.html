@@ -1,4 +1,4 @@
-her<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="my">
 <head>
     <meta charset="UTF-8">
@@ -102,6 +102,10 @@ her<!DOCTYPE html>
             font-size: 0.8em;
             cursor: pointer;
             font-family: 'Pyidaungsu', 'Myanmar3', Arial, sans-serif;
+            transition: background 0.3s;
+        }
+        .quick-btn:hover {
+            background: #0066cc;
         }
         .city-buttons {
             display: flex;
@@ -118,6 +122,10 @@ her<!DOCTYPE html>
             font-size: 0.7em;
             cursor: pointer;
             font-family: 'Pyidaungsu', 'Myanmar3', Arial, sans-serif;
+            transition: background 0.3s;
+        }
+        .city-btn:hover {
+            background: #00a085;
         }
         .news-buttons {
             display: flex;
@@ -134,6 +142,10 @@ her<!DOCTYPE html>
             font-size: 0.7em;
             cursor: pointer;
             font-family: 'Pyidaungsu', 'Myanmar3', Arial, sans-serif;
+            transition: background 0.3s;
+        }
+        .news-btn:hover {
+            background: #d63031;
         }
         .api-result {
             background: #e3f2fd;
@@ -204,30 +216,30 @@ her<!DOCTYPE html>
                     ကျွန်တော်က မြန်မာစာပါ AI အကူပါ။ ရာသီဥတု၊ သတင်း၊ ငွေလဲနှုန်းနဲ့ တွက်ချက်မှုတွေ ကူညီပေးနိုင်ပါတယ်။
                     
                     <div class="quick-buttons">
-                        <button class="quick-btn" onclick="askQuestion('ရာသီဥတု')">🌤️ ရာသီဥတု</button>
-                        <button class="quick-btn" onclick="askQuestion('သတင်း')">📰 သတင်းများ</button>
-                        <button class="quick-btn" onclick="askQuestion('ငွေလဲနှုန်း')">💱 ငွေလဲနှုန်း</button>
-                        <button class="quick-btn" onclick="askQuestion('၁၅×၃ တွက်ပေးပါ')">🧮 တွက်ချက်မှု</button>
+                        <button class="quick-btn" data-question="ရာသီဥတု">🌤️ ရာသီဥတု</button>
+                        <button class="quick-btn" data-question="သတင်း">📰 သတင်းများ</button>
+                        <button class="quick-btn" data-question="ငွေလဲနှုန်း">💱 ငွေလဲနှုန်း</button>
+                        <button class="quick-btn" data-question="၁၅×၃ တွက်ပေးပါ">🧮 တွက်ချက်မှု</button>
                     </div>
 
                     <div style="margin-top: 10px;">
                         <strong>မြို့ရွေးရန်:</strong>
                         <div class="city-buttons">
-                            <button class="city-btn" onclick="askQuestion('ရန်ကုန် ရာသီဥတု')">ရန်ကုန်</button>
-                            <button class="city-btn" onclick="askQuestion('မန္တလေး ရာသီဥတု')">မန္တလေး</button>
-                            <button class="city-btn" onclick="askQuestion('နေပြည်တော် ရာသီဥတု')">နေပြည်တော်</button>
-                            <button class="city-btn" onclick="askQuestion('ပဲခူး ရာသီဥတု')">ပဲခူး</button>
-                            <button class="city-btn" onclick="askQuestion('မော်လမြိုင် ရာသီဥတု')">မော်လမြိုင်</button>
+                            <button class="city-btn" data-question="ရန်ကုန် ရာသီဥတု">ရန်ကုန်</button>
+                            <button class="city-btn" data-question="မန္တလေး ရာသီဥတု">မန္တလေး</button>
+                            <button class="city-btn" data-question="နေပြည်တော် ရာသီဥတု">နေပြည်တော်</button>
+                            <button class="city-btn" data-question="ပဲခူး ရာသီဥတု">ပဲခူး</button>
+                            <button class="city-btn" data-question="မော်လမြိုင် ရာသီဥတု">မော်လမြိုင်</button>
                         </div>
                     </div>
 
                     <div style="margin-top: 10px;">
                         <strong>သတင်းအမျိုးအစား:</strong>
                         <div class="news-buttons">
-                            <button class="news-btn" onclick="askQuestion('နိုင်ငံတော်သတင်း')">နိုင်ငံတော်</button>
-                            <button class="news-btn" onclick="askQuestion('စီးပွားရေးသတင်း')">စီးပွားရေး</button>
-                            <button class="news-btn" onclick="askQuestion('ကျန်းမာရေးသတင်း')">ကျန်းမာရေး</button>
-                            <button class="news-btn" onclick="askQuestion('အားကစားသတင်း')">အားကစား</button>
+                            <button class="news-btn" data-question="နိုင်ငံတော်သတင်း">နိုင်ငံတော်</button>
+                            <button class="news-btn" data-question="စီးပွားရေးသတင်း">စီးပွားရေး</button>
+                            <button class="news-btn" data-question="ကျန်းမာရေးသတင်း">ကျန်းမာရေး</button>
+                            <button class="news-btn" data-question="အားကစားသတင်း">အားကစား</button>
                         </div>
                     </div>
                 </div>
@@ -481,7 +493,7 @@ her<!DOCTYPE html>
             showWeatherHelp() {
                 let citiesHTML = '';
                 for (const city of Object.keys(myanmarCities)) {
-                    citiesHTML += `<button class="city-btn" onclick="askQuestion('${city} ရာသီဥတု')">${city}</button>`;
+                    citiesHTML += `<button class="city-btn" data-question="${city} ရာသီဥတု">${city}</button>`;
                 }
 
                 return `<strong>🌤️ မြို့အလိုက်ရာသီဥတုများ</strong>
@@ -499,7 +511,4 @@ her<!DOCTYPE html>
         </div>`;
             }
 
-            showNewsHelp() {
-                let categoriesHTML = '';
-                for (const category of Object.keys(newsCategories)) {
-                    categoriesHTML += `<button class="news-btn" onclic
+     
