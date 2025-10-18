@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>မြန်မာစာ AI Chatbot - Working Version</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header {
+            background: #0084ff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        .user-message {
+            justify-content: flex-end;
+        }
+        .bot-message {
+            justify-content: flex-start;
+        }
+        .bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: white;
+            border: 1px solid #ddd;
+            line-height: 1.4;
+        }
+        .user-message .bubble {
+            background: #0084ff;
+            color: white;
+            border: none;
+        }
+        .input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        #userInput {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1em;
+        }
+        #sendBtn {
+            background: #0084ff;
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .quick-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .quick-btn {
+            background: #0084ff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+        .api-result {
+            background: #e3f2fd;
+            border-left: 4px solid #0084ff;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+        }
+        .typing {
+            display: inline-block;
+        }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #666;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <h1>🤖 မြန်မာစာ AI အကူ</h1>
+            <p>အဆင်ပြေစွာအသုံးပြုနိုင်ပါပြီ</p>
+        </div>
+        
+        <div class="messages" id="messages">
+            <div class="message bot-message">
+                <div class="bubble">
+                    <strong>မင်္ဂလာပါ! 👋</strong><br>
+                    ကျွန်တော်က မြန်မာစာပါ AI အကူပါ။
+                    
+                    <div class="quick-buttons">
+                        <button class="quick-btn" onclick="askQuestion('ရန်ကုန် ရာသီဥတု')">🌤️ ရာသီဥတု</button>
+                        <button class="quick-btn" onclick="askQuestion('ငွေလဲနှုန်း')">💱 ငွေလဲနှုန်း</button>
+                        <button class="quick-btn" onclick="askQuestion('၁၅×၃ တွက်ပေးပါ')">🧮 တွက်ချက်မှု</button>
+                        <button class="quick-btn" onclick="askQuestion('ဟာသတစ်ခုပြောပါ')">😄 ဟာသများ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="စာရိုက်ရန်..." autocomplete="off">
+            <button id="sendBtn">➤</button>
+        </div>
+    </div>
+
+    <script>
+        // Simple AI Assistant with Real APIs
+        class AIAssistant {
+            async getRealWeather() {
+                try {
+                    const response = await fetch('https://api.openweathermap.org/data/2.5/weather?q=Yangon&appid=b1b15e88fa797225412429c1c50c122a1&units=metric');
+                    const data = await response.json();
+                    return `<strong>🌤️ ရန်ကုန်ရာသီဥတု (Real API)</strong>
+        <div class="api-result">
+        အပူချိန်: <strong>${Math.round(data.main.temp)}°C</strong><br>
+        ရာသီဥတု: ${data.weather[0].description}<br>
+        စိုထိုင်းဆ: ${data.main.humidity}%<br>
+        <small>OpenWeatherMap မှ လက်ရှိဒေတာ</small>
+        </div>`;
+                } catch (error) {
+                    return `<strong>🌤️ ရန်ကုန်ရာသီဥတု</strong>
+        <div class="api-result">
+        အပူချိန်: <strong>32°C</strong><br>
+        ရာသီဥတု: တိမ်အနည်းငယ်<br>
+        <small>ခန့်မှန်းခြေဒေတာ</small>
+        </div>`;
+                }
+            }
+
+            async getRealExchange() {
+                try {
+                    const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                    const data = await response.json();
+                    return `<strong>💱 ငွေလဲနှုန်းများ (Real API)</strong>
+        <div class="api-result">
+        USD to MMK: <strong>${data.rates.MMK} ကျပ်</strong><br>
+        USD to EUR: ${data.rates.EUR}<br>
+        USD to SGD: ${data.rates.SGD}<br>
+        <small>ExchangeRate-API မှ လက်ရှိဒေတာ</small>
+        </div>`;
+                } catch (error) {
+                    return `<strong>💱 ငွေလဲနှုန်းများ</strong>
+        <div class="api-result">
+        USD to MMK: <strong>2,100 ကျပ်</strong><br>
+        USD to EUR: 0.92<br>
+        USD to SGD: 1.35<br>
+        <small>ခန့်မှန်းခြေနှုန်းထား</small>
+        </div>`;
+                }
+            }
+
+            async getRealJoke() {
+                try {
+                    const response = await fetch('https://official-joke-api.appspot.com/random_joke');
+                    const data = await response.json();
+                    return `<strong>😄 ဟာသ (Real API)</strong>
+        <div class="api-result">
+        ${data.setup}<br><br>
+        <strong>${data.punchline}</strong><br>
+        <small>Official Joke API မှ</small>
+        </div>`;
+                } catch (error) {
+                    return `<strong>😄 ဟာသ</strong>
+        <div class="api-result">
+        ဘာကြောင့် ကွန်ပျူတာတွေက ဘာသာစကားအသစ်တွေ သင်ရတာ ကြောက်တာလဲ?<br><br>
+        <strong>ဘာလို့လဲဆိုတော့... သူတို့မှာ ဘာဂါ(bug)တွေ ရှိနေလို့ပါ!</strong>
+        </div>`;
+                }
+            }
+
+            calculate(input) {
+                try {
+                    // Extract numbers and operators
+                    const expression = input.replace(/[^0-9+\-*/().]/g, '');
+                    if (expression) {
+                        const result = eval(expression);
+                        return `<strong>🧮 တွက်ချက်မှုရလဒ်</strong>
+        <div class="api-result">
+        ${expression} = <strong>${result}</strong><br>
+        <small>JavaScript Calculator</small>
+        </div>`;
+                    }
+                    return "🧮 ကျေးဇူးပြု၍ တွက်ချက်မှုတစ်ခုပေးပါ (ဥပမာ: ၁၅×၃)";
+                } catch (e) {
+                    return "🧮 ကျေးဇူးပြု၍ မှန်ကန်သော တွက်ချက်မှုပေးပါ";
+                }
+            }
+
+            async process(input) {
+                if (input.includes('ရာသီဥတု')) {
+                    return await this.getRealWeather();
+                } else if (input.includes('ငွေလဲ')) {
+                    return await this.getRealExchange();
+                } else if (input.includes('ဟာသ')) {
+                    return await this.getRealJoke();
+                } else if (input.includes('တွက်') || input.includes('+') || input.includes('-') || input.includes('*') || input.includes('/')) {
+                    return this.calculate(input);
+                } else {
+                    return `<strong>🤖 ကျေးဇူးပြု၍ ဒီလိုမေးပါ:</strong>
+        <div class="api-result">
+        • "ရန်ကုန် ရာသီဥတု"<br>
+        • "ငွေလဲနှုန်း"<br>
+        • "၁၅×၃ တွက်ပေးပါ"<br>
+        • "ဟာသတစ်ခုပြောပါ"<br>
+        <small>Real APIs များဖြင့် ချိတ်ဆက်ထားပါသည်</small>
+        </div>`;
+                }
+            }
+        }
+
+        // Chat Application
+        const ai = new AIAssistant();
+        const messages = document.getElementById('messages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function askQuestion(question) {
+            userInput.value = question;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            userInput.value = '';
+
+            // Show typing indicator
+            showTyping();
+
+            // Get AI response
+            try {
+                const response = await ai.process(message);
+                hideTyping();
+                addMessage(response, 'bot');
+            } catch (error) {
+                hideTyping();
+                addMessage("တောင်းပန်ပါတယ်၊ အမှားတစ်ခုဖြစ်သွားပါတယ်။", 'bot');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.innerHTML = text;
+            
+            messageDiv.appendChild(bubble);
+            messages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function showTyping() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            messageDiv.id = 'typingIndicator';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble typing';
+            bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            
+            messageDiv.appendChild(bubble);
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        console.log('🚀 Myanmar AI Chatbot loaded successfully!');
+    </script>
+</body>
+</html>
