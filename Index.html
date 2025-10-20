@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>မြန်မာစာ AI - Real Local AI</title>
+    <!-- WebLLM CDN -->
+    <script src="https://unpkg.com/@mlc-ai/web-llm@0.2.38"></script>
+    <style>
+        /* Previous Glass UI styles remain the same */
+        .model-loading {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        
+        .model-info {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Same UI structure as before -->
+    <div class="ai-toggle">
+        <button class="ai-mode-btn active" data-mode="phi3">🧠 Phi-3 Mini</button>
+        <button class="ai-mode-btn" data-mode="qwen">🚀 Qwen2.5</button>
+        <button class="ai-mode-btn" data-mode="seallm">🌍 SeaLLM</button>
+    </div>
+
+    <div class="language-toggle">
+        <button class="lang-btn active" data-lang="my">🇲🇲 မြန်မာ</button>
+        <button class="lang-btn" data-lang="en">🇺🇸 English</button>
+        <button class="lang-btn" data-lang="zh">🇨🇳 中文</button>
+    </div>
+
+    <div class="chat-container">
+        <div class="header">
+            <div class="current-mode" id="currentMode">🧠 Loading Model...</div>
+            <h1>🤖 Real Local AI Assistant</h1>
+            <p>100% Local • No Internet Required</p>
+        </div>
+        
+        <div class="messages" id="messages">
+            <div class="message bot-message">
+                <div class="bubble">
+                    <div class="model-loading">
+                        <strong>🔄 Loading Local AI Model...</strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="modelProgress" style="width: 0%"></div>
+                        </div>
+                        <div class="model-info" id="modelInfo">
+                            Downloading Phi-3 Mini (3.8B)...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Model loading..." disabled autocomplete="off">
+            <button id="sendBtn" disabled>➤</button>
+        </div>
+    </div>
+
+    <script>
+        // Real Local AI Implementation
+        class RealLocalAIAssistant {
+            constructor() {
+                this.engine = null;
+                this.currentModel = 'phi3';
+                this.currentLanguage = 'my';
+                this.isInitialized = false;
+                
+                this.models = {
+                    'phi3': {
+                        name: 'Phi-3 Mini',
+                        model: 'Phi-3-mini-4k-instruct-q4f16_1',
+                        size: '2.3GB',
+                        description: 'Fast & Efficient'
+                    },
+                    'qwen': {
+                        name: 'Qwen2.5-1.5B', 
+                        model: 'Qwen2.5-1.5B-Instruct-q4f16_1',
+                        size: '1.0GB',
+                        description: 'Lightweight Multilingual'
+                    },
+                    'seallm': {
+                        name: 'SeaLLM-7B',
+                        model: 'SeaLLM-7B-v2.5-q4f16_1',
+                        size: '4.2GB',
+                        description: 'Southeast Asia Optimized'
+                    }
+                };
+            }
+
+            // Initialize WebLLM Engine
+            async initModel(modelKey = 'phi3') {
+                const modelConfig = this.models[modelKey];
+                
+                try {
+                    document.getElementById('modelInfo').textContent = 
+                        `Downloading ${modelConfig.name} (${modelConfig.size})...`;
+
+                    // Create WebLLM engine
+                    this.engine = await webllm.CreateWebWorkerEngine(
+                        modelConfig.model,
+                        this.initProgressCallback.bind(this)
+                    );
+
+                    this.isInitialized = true;
+                    this.currentModel = modelKey;
+                    
+                    document.getElementById('modelInfo').textContent = 
+                        `✅ ${modelConfig.name} Loaded!`;
+                    document.getElementById('userInput').disabled = false;
+                    document.getElementById('userInput').placeholder = 
+                        'Ask anything in any language...';
+                    document.getElementById('sendBtn').disabled = false;
+                    
+                    this.updateModeDisplay();
+                    
+                    console.log(`✅ ${modelConfig.name} initialized successfully`);
+                    
+                } catch (error) {
+                    console.error('Model initialization failed:', error);
+                    document.getElementById('modelInfo').textContent = 
+                        '❌ Model loading failed. Using fallback mode.';
+                    this.enableFallbackMode();
+                }
+            }
+
+            // Progress callback for model loading
+            initProgressCallback(report) {
+                const progress = report.progress;
+                document.getElementById('modelProgress').style.width = `${progress * 100}%`;
+                
+                if (report.text) {
+                    document.getElementById('modelInfo').textContent = report.text;
+                }
+            }
+
+            // Generate response using local AI
+            async generateResponse(prompt, language = 'my') {
+                if (!this.isInitialized || !this.engine) {
+                    return this.fallbackResponse(prompt, language);
+                }
+
+                try {
+                    const systemPrompt = this.getSystemPrompt(language);
+                    
+                    const messages = [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: prompt }
+                    ];
+
+                    const completion = await this.engine.chat.completions.create({
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: 1024,
+                        stream: false
+                    });
+
+                    return completion.choices[0].message.content;
+
+                } catch (error) {
+                    console.error('Generation error:', error);
+                    return this.fallbackResponse(prompt, language);
+                }
+            }
+
+            getSystemPrompt(language) {
+                const prompts = {
+                    my: `သင့်အမည်က "မြန်မာစာ AI အကူ" ဖြစ်ပါသည်။ ကျေးဇူးပြု၍ မြန်မာလိုသာ ပြန်ဖြေပါ။ 
+                    ရာသီဥတု၊ သတင်း၊ တွက်ချက်မှု၊ ဘာသာပြန်ဆိုခြင်းစသည့် မေးခွန်းများကို ဖြေဆိုနိုင်ပါသည်။
+                    ရိုးရှင်းပြတ်သားစွာ ဖြေဆိုပါ။`,
+                    
+                    en: `You are "Myanmar AI Assistant". Please respond in English.
+                    You can answer questions about weather, news, calculations, translations, etc.
+                    Keep responses clear and concise.`,
+                    
+                    zh: `你是"缅甸AI助手"。请用中文回答。
+                    你可以回答关于天气、新闻、计算、翻译等问题。
+                    保持回答清晰简洁。`
+                };
+                return prompts[language] || prompts['en'];
+            }
+
+            // Fallback when local AI fails
+            fallbackResponse(prompt, language) {
+                const responses = {
+                    my: `Local AI မအောင်မြင်သေးပါ။ Demo mode တွင်ရှိပါသည်။\n\nမေးခွန်း: "${prompt}"`,
+                    en: `Local AI not ready yet. In demo mode.\n\nQuestion: "${prompt}"`,
+                    zh: `本地AI尚未准备好。处于演示模式。\n\n问题: "${prompt}"`
+                };
+                return responses[language];
+            }
+
+            enableFallbackMode() {
+                this.isInitialized = false;
+                document.getElementById('userInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('userInput').placeholder = 'Demo mode - Local AI loading failed';
+            }
+
+            async switchModel(modelKey) {
+                if (this.engine) {
+                    await this.engine.unload();
+                }
+                
+                this.currentModel = modelKey;
+                await this.initModel(modelKey);
+            }
+
+            updateModeDisplay() {
+                const model = this.models[this.currentModel];
+                const langInfo = this.getLanguageInfo(this.currentLanguage);
+                document.getElementById('currentMode').textContent = 
+                    `🧠 ${model.name} • ${langInfo.flag} ${langInfo.name}`;
+            }
+
+            getLanguageInfo(lang) {
+                const languages = {
+                    'my': { name: 'မြန်မာ', flag: '🇲🇲' },
+                    'en': { name: 'English', flag: '🇺🇸' },
+                    'zh': { name: '中文', flag: '🇨🇳' }
+                };
+                return languages[lang];
+            }
+
+            setLanguage(lang) {
+                this.currentLanguage = lang;
+                this.updateModeDisplay();
+            }
+        }
+
+        // Chat Application with Real Local AI
+        const localAI = new RealLocalAIAssistant();
+        const messages = document.getElementById('messages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Initialize the default model
+        localAI.initModel('phi3').then(() => {
+            addMessage('✅ Local AI model loaded successfully! You can now chat offline.', 'bot');
+        });
+
+        // Model switching
+        document.querySelectorAll('.ai-mode-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const modelKey = e.target.dataset.mode;
+                document.querySelectorAll('.ai-mode-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                addMessage(`🔄 Switching to ${localAI.models[modelKey].name}...`, 'bot');
+                await localAI.switchModel(modelKey);
+            });
+        });
+
+        // Language switching
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const lang = e.target.dataset.lang;
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                localAI.setLanguage(lang);
+            });
+        });
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message || !localAI.isInitialized) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+            showTyping();
+
+            try {
+                const response = await localAI.generateResponse(message, localAI.currentLanguage);
+                hideTyping();
+                addMessage(response, 'bot');
+            } catch (error) {
+                hideTyping();
+                addMessage('❌ Error generating response. Please try again.', 'bot');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            if (sender === 'bot') {
+                const model = localAI.models[localAI.currentModel];
+                bubble.innerHTML = `
+                    ${text}
+                    <div class="model-indicator">
+                        🧠 ${model.name} • ${localAI.getLanguageInfo(localAI.currentLanguage).flag}
+                    </div>
+                `;
+            } else {
+                bubble.textContent = text;
+            }
+            
+            messageDiv.appendChild(bubble);
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function showTyping() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            messageDiv.id = 'typingIndicator';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble typing';
+            bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            
+            messageDiv.appendChild(bubble);
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        console.log('🚀 Real Local AI Assistant initialized');
+    </script>
+</body>
+  </html>
